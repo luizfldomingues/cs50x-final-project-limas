@@ -18,7 +18,9 @@ By default, new users can be registered. In order to change that, you can change
 
 After that, your application is ready to run. To do so, go to the project folder and run:
 
-cs50x-final-project-limas$ flask run
+```bash
+flask run
+```
 
 That is going to, by default, deploy your application locally on adress 127.0.0.1:5000. You can access it on your local browser and start using.
 
