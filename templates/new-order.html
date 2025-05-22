@@ -4,6 +4,11 @@
 Novo Pedido
 {% endblock %}
 
+{% block script %}
+<script src="/static/js/helpers.js"></script>
+<script src="/static/js/pre-total.js"></script>
+{% endblock %}
+
 {% block main %}
     <form action="/new-order" method="post">
         <div class="p-1 m-1 mx-auto">
@@ -37,14 +42,26 @@ Novo Pedido
                     <td>{{product.product_name | capitalize }}</td>
                     <td>{{ product.price | brl }}</td>
                     <td>
-                            <div class="mx-auto" style="max-width: 4rem;">
-                            <input class="form-control" name="{{ product.id }}" style="max-width: 4rem;" type="number">
+                        <div class="mx-auto" style="max-width: 4rem;">
+                            <input class="form-control quantity-input" name="{{ product.id }}" 
+                                   style="max-width: 4rem;" type="number" min="0"
+                                   data-price="{{ product.price }}">
                         </div>
                     </td>
                 </tr>
                 {% endfor %}
                 </tbody>
         {% endfor %}
+                <tfoot>
+                    <tr>
+                        <th colspan="2" class="text-center">Total</th>
+                        <th>
+                            <div class="mx-auto" id="pre-total">
+                                {{ total | brl }}
+                            </div>
+                        </td>
+                    </tr>
+                </tfoot>
             </table>
         </div>
         <button class="border btn btn-primary" type="submit">Registrar Pedido</button>
