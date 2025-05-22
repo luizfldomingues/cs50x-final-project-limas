@@ -1,1 +1,1 @@
-allow_new_users = False
+allow_new_users = True

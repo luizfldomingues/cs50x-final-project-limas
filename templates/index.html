@@ -7,6 +7,9 @@ Página Inicial
 {% block main %}
     <div class="py-1 my-1">
         {% if orders %}
+        <div class="mb-3 mt-0">
+            <h5><a class="link-underline-opacity-0" href="/new-order">Novo pedido</a><h5>
+        </div>
         {% for order in orders %}
         <table class="table table-bordered table-striped">
             <thead>
