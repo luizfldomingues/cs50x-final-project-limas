@@ -13,7 +13,13 @@
                     <div class="card-body">
                         <h5 class="card-title">Relatório de Vendas</h5>
                         <p class="card-text"><strong>Período:</strong> {{ period }}</p>
-                        <p class="card-text"><strong>Total de Vendas:</strong> {{ total_sales }}</p>
+                        <p class="card-text"><strong>Total de vendas:</strong> {{ total_sales }}</p>
+                        <p class="card-text"><strong>Total em dinheiro:</strong> {{ sales.cash }}</p>
+                        <p class="card-text"><strong>Total em pix:</strong> {{ sales.pix }}</p>
+                        <p class="card-text"><strong>Total em débito:</strong> {{ sales.debit_card }}</p>
+                        <p class="card-text"><strong>Total em crédito:</strong> {{ sales.credit_card }}</p>
+                        <p class="card-text"><strong>Total não específicado:</strong> {{ sales[None] }}</p>
+
                         <a href="/reports" class="btn btn-primary">Voltar</a>
                     </div>
                 </div>
