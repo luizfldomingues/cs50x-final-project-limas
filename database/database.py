@@ -277,4 +277,4 @@ class Database:
         row = self._execute_query("SELECT id FROM users WHERE username = ?", (username,), fetchone=True)
         return row['id'] if row else None
 
-db = Database("/home/luizdomingues/Desktop/cs50x-final-project-limas/database/limas.db")
+db = Database("./database/limas.db")
