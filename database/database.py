@@ -21,7 +21,7 @@ class Database:
 
     def _init_database(self):
         """Initializes the database schema from an SQL script."""
-        with open('/home/luizdomingues/Desktop/cs50x-final-project-limas/database/limas.sql', 'r') as sql_file:
+        with open('./database/limas.sql', 'r') as sql_file:
             sql_script = sql_file.read()
         with self._get_db_connection() as conn:
             conn.executescript(sql_script)
