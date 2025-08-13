@@ -6,7 +6,9 @@ def apology(message, code="400"):
 
 def brl(value):
     """Format value from BRL cents to BRL"""
-    if type(value) != int:
+    try:
+        value = int(value)
+    except (ValueError, TypeError):
         value = 0
     return f"R${value/100:,.2f}".replace(".", ",")
 
