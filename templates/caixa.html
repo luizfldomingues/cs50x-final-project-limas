@@ -1,0 +1,88 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Caixa
+{% endblock %}
+
+{% block main %}
+    <div class="container">
+        <h1 class="text-center">Caixa</h1>
+
+        {% if pos_status == 'closed' %}
+            <div class="row justify-content-center">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Abrir Caixa</h5>
+                            <p class="card-text">O caixa está fechado. Insira o valor inicial para abrir o caixa.</p>
+                            <form action="/caixa/open" method="post">
+                                <div class="mb-3">
+                                    <label for="quantity" class="form-label">Valor Inicial</label>
+                                    <input type="number" step="0.01" class="form-control" id="quantity" name="quantity" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Abrir Caixa</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Movimentações</h5>
+                            <ul class="list-group">
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Saldo Inicial
+                                    <span>{{ initial_balance }}</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Vendas em Dinheiro
+                                    <span>{{ cash_sales }}</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Suprimentos
+                                    <span>{{ inserts }}</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Retiradas
+                                    <span>{{ withdrawals }}</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center active">
+                                    <strong>Saldo Atual</strong>
+                                    <strong>{{ current_balance }}</strong>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Operações</h5>
+                            <form action="/point-of-sale" method="post" class="mb-3">
+                                <input type="hidden" name="movimentation_type" value="insert">
+                                <div class="input-group">
+                                    <input type="number" step="0.01" class="form-control" name="quantity" placeholder="Inserir Dinheiro" required>
+                                    <button type="submit" class="btn btn-success">Inserir</button>
+                                </div>
+                            </form>
+                            <form action="/point-of-sale" method="post" class="mb-3">
+                                <input type="hidden" name="movimentation_type" value="withdraw">
+                                <div class="input-group">
+                                    <input type="number" step="0.01" class="form-control" name="quantity" placeholder="Retirar Dinheiro" required>
+                                    <button type="submit" class="btn btn-warning">Retirar</button>
+                                </div>
+                            </form>
+                            <form action="/point-of-sale" method="post">
+                                <input type="hidden" name="movimentation_type" value="close">
+                                <button type="submit" class="btn btn-danger w-100">Fechar Caixa</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

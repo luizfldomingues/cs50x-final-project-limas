@@ -1,0 +1,91 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Relatórios
+{% endblock %}
+
+{% block main %}
+    <div class="container">
+        <h1 class="text-center">Relatórios</h1>
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Gerar Relatório de Vendas</h5>
+                        <form action="/reports" method="post">
+                            <div class="mb-3">
+                                <label for="report_type" class="form-label">Tipo de Relatório</label>
+                                <select class="form-select" id="report_type" name="report_type">
+                                    <option value="daily">Diário</option>
+                                    <option value="weekly">Semanal</option>
+                                    <option value="monthly">Mensal</option>
+                                    <option value="yearly">Anual</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="date" class="form-label" id="date-label">Data</label>
+                                <input type="date" class="form-control" id="date" name="date">
+                            </div>
+                            <div class="mb-3">
+                                <label for="week" class="form-label" id="week-label">Semana</label>
+                                <input type="week" class="form-control" id="week" name="week">
+                            </div>
+                            <div class="mb-3">
+                                <label for="month" class="form-label" id="month-label">Mês</label>
+                                <input type="month" class="form-control" id="month" name="month">
+                            </div>
+                            <div class="mb-3">
+                                <label for="year" class="form-label" id="year-label">Ano</label>
+                                <input type="number" class="form-control" id="year" name="year" placeholder="YYYY">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Gerar Relatório</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const reportType = document.getElementById('report_type');
+            const dateInput = document.getElementById('date');
+            const dateLabel = document.getElementById('date-label')
+            const weekInput = document.getElementById('week');
+            const weekLabel = document.getElementById('week-label');
+            const monthInput = document.getElementById('month');
+            const monthLabel = document.getElementById('month-label');
+            const yearInput = document.getElementById('year');
+            const yearLabel = document.getElementById('year-label');
+
+            function toggleInputs() {
+                dateInput.style.display = 'none';
+                weekInput.style.display = 'none';
+                monthInput.style.display = 'none';
+                yearInput.style.display = 'none';
+                dateLabel.style.display = 'none';
+                weekLabel.style.display = 'none';
+                monthLabel.style.display = 'none';
+                yearLabel.style.display = 'none';
+               
+
+                if (reportType.value === 'daily') {
+                    dateInput.style.display = 'block';
+                    dateLabel.style.display = 'block';
+                } else if (reportType.value === 'weekly') {
+                    weekInput.style.display = 'block';
+                    weekLabel.style.display = 'block';
+                } else if (reportType.value === 'monthly') {
+                    monthInput.style.display = 'block';
+                    monthLabel.style.display = 'block';
+                } else if (reportType.value === 'yearly') {
+                    yearInput.style.display = 'block';
+                    yearLabel.style.display = 'block';
+                }
+            }
+
+            toggleInputs();
+            reportType.addEventListener('change', toggleInputs);
+        });
+    </script>
+{% endblock %}

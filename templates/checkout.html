@@ -1,0 +1,40 @@
+{% extends "layout.html" %}
+{% from "macros.html" import display_orders %}
+
+{% block title %}
+    Checkout
+{% endblock %}
+
+{% block main %}
+    <div class="container">
+        <h2 class="text-center mb-4">Checkout Pedido Nº{{ order.id }}</h2>
+
+        <div class="row">
+            <!-- Order Summary -->
+            <div class="col-md-6">
+                {{ display_orders([order], order_products, 'checkout') }}
+            </div>
+
+            <!-- Payment Method -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        Método de Pagamento
+                    </div>
+                    <div class="card-body">
+                        <form action="/checkout" method="post">
+                            <input type="hidden" name="order-id" value="{{ order.id }}">
+                            <div class="d-grid gap-2">
+                                <button type="submit" name="payment-method" value="cash" class="btn btn-success">Dinheiro</button>
+                                <button type="submit" name="payment-method" value="pix" class="btn btn-primary">PIX</button>
+                                <button type="submit" name="payment-method" value="debit_card" class="btn btn-info">Débito</button>
+                                <button type="submit" name="payment-method" value="credit_card" class="btn btn-warning">Crédito</button>
+                                <button type="submit" name="payment-method" value="" class="btn btn-secondary">Não especificar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

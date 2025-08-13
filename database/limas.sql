@@ -33,6 +33,7 @@ CREATE TABLE order_increments (
     id INTEGER PRIMARY KEY NOT NULL,
     order_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
+    observation TEXT,
     increment_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (order_id) REFERENCES orders(id),
     FOREIGN KEY (user_id) REFERENCES users(id)
@@ -48,6 +49,22 @@ CREATE TABLE order_products (
     FOREIGN KEY (order_id) REFERENCES orders(id),
     FOREIGN KEY (product_id) REFERENCES products(id),
     FOREIGN KEY (order_increment_id) REFERENCES order_increments(id)
+);
+
+CREATE TABLE order_payments (
+  id INTEGER PRIMARY KEY NOT NULL,
+  order_id INTEGER NOT NULL,
+  payment_method TEXT CHECK (payment_method IN (NULL, 'cash', 'credit_card', 'debit_card', 'pix')),
+  amount INTEGER NOT NULL,
+  payment_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (order_id) REFERENCES orders(id)
+);
+
+CREATE TABLE pos_cash_movimentations (
+  id INTEGER PRIMARY KEY NOT NULL,
+  user_id INTEGER NOT NULL,  quantity INTEGER NOT NULL,
+  movimentation_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
 --TODO: Add indexes on tables

@@ -70,7 +70,6 @@ Detalhes pedido N.º{{ order.id }}
             </tr>
         </tfoot>
         </table>
-
         {% for increment in increments %}
         <div class="py-1 my-1">
             <table class="table table-bordered table-striped">
@@ -86,6 +85,12 @@ Detalhes pedido N.º{{ order.id }}
                         <th colspan="2" class="align-right">Incrementado em:</th>
                         <td>{{ increment.increment_time }}</td>
                     </tr>
+                    {% if increment.observation %}
+                    <tr>
+                        <th colspan="2" class="align-right">Observação:</th>
+                        <td>{{ increment.observation }}</td>
+                    </tr>
+                    {% endif %}
                     {% if increment.products %}
                         <tr>
                             <th>Produto</th>

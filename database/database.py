@@ -42,13 +42,13 @@ class Database:
             conn.commit()
             return result
 
-    def add_order_products(self, order_id, increment_products):
+    def add_order_products(self, order_id, increment_products, observation):
         """Adds new products to an existing order, creating an order increment."""
         if not increment_products:
             return
         order_increment_id = self._execute_query(
-            "INSERT INTO order_increments (order_id, user_id) VALUES (?, ?)",
-            (order_id, session["user_id"]),
+            "INSERT INTO order_increments (order_id, user_id, observation) VALUES (?, ?, ?)",
+            (order_id, session["user_id"], observation),
             lastrowid=True
         )
         for product in increment_products:
@@ -113,6 +113,13 @@ class Database:
     def update_order_status(self, order_id, status):
         """Updates the status of a specific order (e.g., 'pending', 'completed')."""
         self._execute_query("UPDATE orders SET order_status = ? WHERE id = ?", (status, order_id))
+
+    def add_payment(self, order_id, payment_method, amount):
+        """Adds a new payment record for a specific order."""
+        self._execute_query(
+            "INSERT INTO order_payments (order_id, payment_method, amount) VALUES (?, ?, ?)",
+            (order_id, payment_method, amount)
+        )
 
     def get_date_since(self, date_range):
         """Calculates a date based on a given range of days from the current timestamp."""
@@ -245,9 +252,9 @@ class Database:
     def get_order_increments(self, order_id):
         """Retrieves all increments for a specific order."""
         rows = self._execute_query(
-            "SELECT oi.id AS id, u.username, DATETIME(oi.increment_time, '-3 hours') AS increment_time "
+            "SELECT oi.id AS id, u.username, oi.observation, DATETIME(oi.increment_time, '-3 hours') AS increment_time "
             "FROM order_increments oi JOIN users u ON oi.user_id = u.id WHERE oi.order_id = ? "
-            "ORDER BY oi.increment_time DESC",
+            "ORDER BY oi.increment_time ASC",
             (order_id,)
         )
         return [dict(row) for row in rows]
@@ -276,5 +283,73 @@ class Database:
         """Retrieves the ID of a user by their username."""
         row = self._execute_query("SELECT id FROM users WHERE username = ?", (username,), fetchone=True)
         return row['id'] if row else None
+
+    def get_pos_status(self):
+        """Checks if the POS is open or closed."""
+        row = self._execute_query("SELECT id FROM pos_cash_movimentations LIMIT 1", fetchone=True)
+        return "open" if row else "closed"
+
+    def get_pos_cash_movimentations(self):
+        """Retrieves all cash movimentations from the POS."""
+        rows = self._execute_query("SELECT * FROM pos_cash_movimentations ORDER BY movimentation_time ASC")
+        return [dict(row) for row in rows]
+
+    def add_pos_cash_movimentation(self, user_id, quantity):
+        """Adds a cash movimentation to the POS."""
+        self._execute_query(
+            "INSERT INTO pos_cash_movimentations (user_id, quantity) VALUES (?, ?)",
+            (user_id, quantity)
+        )
+
+    def delete_pos_cash_movimentations(self):
+        """Deletes all cash movimentations from the POS."""
+        self._execute_query("DELETE FROM pos_cash_movimentations")
+
+    def get_cash_sales(self, since_time):
+        """Calculates the total of cash sales since a given time."""
+        row = self._execute_query(
+            "SELECT SUM(amount) AS total FROM order_payments WHERE payment_method = 'cash' AND payment_time >= ?",
+            (since_time,),
+            fetchone=True
+        )
+        return row['total'] if row and row['total'] is not None else 0
+
+    def get_daily_sales(self, date):
+        """Calculates the total sales for a specific day."""
+        sales = {}
+        for payment_method in ('cash', 'credit_card', 'debit_card', 'pix'):
+            rows = self._execute_query(
+                "SELECT SUM(amount) FROM order_payments WHERE DATE(payment_time, '-3 hours') = ? AND payment_method = ? GROUP BY DATE(payment_time, '-3 hours')",
+                (date, payment_method),
+            )
+            sales[payment_method] = [dict(row) for row in rows]
+        return row['total'] if row and row['total'] is not None else 0
+
+    def get_weekly_sales(self, year, week):
+        """Calculates the total sales for a specific week."""
+        row = self._execute_query(
+            "SELECT SUM(amount) AS total FROM order_payments WHERE STRFTIME('%Y-%W', payment_time, '-3 hours') = ?",
+            (f"{year}-{week}",),
+            fetchone=True
+        )
+        return row['total'] if row and row['total'] is not None else 0
+
+    def get_monthly_sales(self, year, month):
+        """Calculates the total sales for a specific month."""
+        row = self._execute_query(
+            "SELECT SUM(amount) AS total FROM order_payments WHERE STRFTIME('%Y-%m', payment_time, '-3 hours') = ?",
+            (f"{year}-{month}",),
+            fetchone=True
+        )
+        return row['total'] if row and row['total'] is not None else 0
+
+    def get_yearly_sales(self, year):
+        """Calculates the total sales for a specific year."""
+        row = self._execute_query(
+            "SELECT SUM(amount) AS total FROM order_payments WHERE STRFTIME('%Y', payment_time, '-3 hours') = ?",
+            (year,),
+            fetchone=True
+        )
+        return row['total'] if row and row['total'] is not None else 0
 
 db = Database("/home/luizdomingues/Desktop/cs50x-final-project-limas/database/limas.db")

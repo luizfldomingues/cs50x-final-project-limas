@@ -79,8 +79,9 @@ def edit_order():
                     increment_products.append(
                         {"id": actual_product["id"], "quantity": quantity}
                     )
+        observation = request.form.get("observation")
         db.update_order(order_id, customer, table)
-        db.add_order_products(order_id, increment_products)
+        db.add_order_products(order_id, increment_products, observation)
         flash(f"Pedido Nº.{order_id} editado com sucesso")
         return redirect("/")
     # User reached route via GET
@@ -94,6 +95,44 @@ def edit_order():
             "edit-order.html",
             order=order[0],
             order_products=order_products[int(order_id)],
+        )
+
+
+@app.route("/checkout", methods=["GET", "POST"])
+@login_required
+def checkout():
+    if request.method == "POST":
+        order_id = request.form.get("order-id")
+        payment_method = request.form.get("payment-method")
+        if not payment_method:
+            payment_method = None
+        order = db.get_order(order_id)
+        if len(order) != 1:
+            return apology("Pedido não encontrado")
+        order_products = db.list_products(order)
+        total = order[0]["total"]
+        db.add_payment(order_id, payment_method, total)
+        db.update_order_status(order_id, "completed")
+        flash(f"Pedido N.º {order_id} completado com sucesso")
+        return redirect("/")
+    else:
+        order_id = request.args.get("order-id")
+        order = db.get_order(order_id)
+        if len(order) != 1:
+            return apology("Pedido não encontrado")
+        order_products = db.list_products(order)
+        total = order[0].get("total", 0)
+
+        if total == 0:
+            db.add_payment(order_id, None, 0)
+            db.update_order_status(order_id, "completed")
+            flash(f"Pedido N.º {order_id} (vazio) completado com sucesso")
+            return redirect("/")
+
+        return render_template(
+            "checkout.html",
+            order=order[0],
+            order_products=order_products,
         )
 
 
@@ -114,12 +153,7 @@ def modify_order_status(order_id=None, action=None):
         flash(f"Pedido Nº.{order_id} apagado com sucesso")
         return redirect("/")
     if action == "complete":
-        try:
-            db.update_order_status(order_id, "completed")
-        except:
-            return apology("Algo deu errado com a mudança do status do pedido")
-        flash(f"Pedido N.º {order_id} completado com sucesso")
-        return redirect("/")
+        return redirect(f"/checkout?order-id={order_id}")
     if action == "reopen":
         try:
             db.update_order_status(order_id, "pending")
@@ -164,7 +198,6 @@ def increment_order():
     if request.method == "POST":
         order_id = request.form.get("order-id")
         if not order_id or not order_id.isnumeric():
-            print(f"O id do pedido não foi reconhecido id: {order_id}")
             return apology("Não foi possível receber o id do pedido")
 
         # Append each ordered product to the order_products list
@@ -182,7 +215,8 @@ def increment_order():
         except:
             return apology("Não foi possível registrar o produto")
 
-        db.add_order_products(order_id, increment_products)
+        observation = request.form.get("observation")
+        db.add_order_products(order_id, increment_products, observation)
         flash(f"Pedido Nº.{order_id} incrementado com sucesso")
         return redirect("/")
 
@@ -444,10 +478,11 @@ def new_order():
             return apology("Não foi possível registrar o produto")
         customer = request.form.get("customer")
         table_number = request.form.get("table-number")
+        observation = request.form.get("observation")
 
         # Register the order into the orders table
         order_id = db.create_order(session["user_id"], customer, table_number)
-        db.add_order_products(order_id, order_products)
+        db.add_order_products(order_id, order_products, observation)
         if request.form.get("auto-complete") == 'True':
             return modify_order_status(order_id=order_id, action="complete")           
         flash(f"Pedido N.º{order_id} registrado")
@@ -491,18 +526,119 @@ def order_details():
         "order-details.html", order=order, increments=increments, details=details
     )
 
-@app.route("/point-of-sale")
-@login_required
-def point_of_sale():
-    """ Page for managing the point of sale """
-    flash("TODO")
-    return render_template("blank.html")
-@app.route("/reports")
+@app.route("/reports", methods=["GET", "POST"])
 @login_required
 def reports():
     """Page for querying for sales reports"""
-    flash("TODO")
-    return render_template("blank.html")
+    if request.method == "POST":
+        report_type = request.form.get("report_type")
+        total_sales = 0
+        period = ""
+
+        if report_type == "daily":
+            date = request.form.get("date")
+            if not date:
+                return apology("Data inválida")
+            total_sales = db.get_daily_sales(date)
+            period = date
+        elif report_type == "weekly":
+            week_input = request.form.get("week")
+            if not week_input:
+                return apology("Semana inválida")
+            year, week = week_input.split("-W")
+            total_sales = db.get_weekly_sales(year, week)
+            period = f"Semana {week} de {year}"
+        elif report_type == "monthly":
+            month_input = request.form.get("month")
+            if not month_input:
+                return apology("Mês inválido")
+            year, month = month_input.split("-")
+            total_sales = db.get_monthly_sales(year, month)
+            period = f"Mês {month} de {year}"
+        elif report_type == "yearly":
+            year = request.form.get("year")
+            if not year or not year.isdigit():
+                return apology("Ano inválido")
+            total_sales = db.get_yearly_sales(year)
+            period = f"Ano de {year}"
+        else:
+            return apology("Tipo de relatório inválido")
+
+        return render_template("report_result.html", period=period, total_sales=brl(total_sales))
+
+    else:
+        return render_template("reports.html")
+
+
+@app.route("/point-of-sale", methods=["GET", "POST"])
+@login_required
+def point_of_sale():
+    if request.method == "POST":
+        movimentation_type = request.form.get("movimentation_type")
+        if movimentation_type == "close":
+            db.delete_pos_cash_movimentations()
+            flash("Caixa fechado com sucesso")
+            return redirect("/point-of-sale")
+        
+        quantity = request.form.get("quantity")
+        if not quantity or not quantity.isnumeric() or float(quantity) <= 0:
+            return apology("Valor inválido")
+        
+        quantity = int(float(quantity) * 100)
+
+        if movimentation_type == "withdraw":
+            quantity *= -1
+        
+        if movimentation_type in ["insert", "withdraw"]:
+            db.add_pos_cash_movimentation(session["user_id"], quantity)
+            if movimentation_type == 'insert':
+                flash("Valor inserido com sucesso")
+            else:
+                flash("Valor retirado com sucesso")
+            return redirect("/point-of-sale")
+        else:
+            return apology("Tipo de movimentação inválido")
+
+    else:
+        pos_status = db.get_pos_status()
+        if pos_status == "closed":
+            return render_template("caixa.html", pos_status="closed")
+        else:
+            movimentations = db.get_pos_cash_movimentations()
+            initial_balance = movimentations[0]["quantity"]
+            cash_sales = db.get_cash_sales(movimentations[0]["movimentation_time"])
+            withdrawals = 0
+            inserts = 0
+            for mov in movimentations[1:]:
+                if mov["quantity"] < 0:
+                    withdrawals += mov["quantity"]
+                else:
+                    inserts += mov["quantity"]
+            
+            current_balance = initial_balance + cash_sales + inserts + withdrawals
+
+            return render_template("caixa.html", pos_status="open", 
+                                   initial_balance=brl(initial_balance),
+                                   cash_sales=brl(cash_sales),
+                                   withdrawals=brl(withdrawals * -1),
+                                   inserts=brl(inserts),
+                                   current_balance=brl(current_balance))
+
+
+@app.route("/caixa/open", methods=["GET", "POST"])
+@login_required
+def open_pos():
+    if request.method == "POST":
+        quantity = request.form.get("quantity")
+        if not quantity or not quantity.isnumeric() or float(quantity) < 0:
+            return apology("Valor inválido")
+        
+        quantity = int(float(quantity) * 100)
+        db.add_pos_cash_movimentation(session["user_id"], quantity)
+        flash("Caixa aberto com sucesso")
+        return redirect("/point-of-sale")
+    else:
+        return render_template("open_pos.html")
 
 
 @app.route("/register", methods=["GET", "POST"])

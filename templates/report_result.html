@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Resultado do Relatório
+{% endblock %}
+
+{% block main %}
+    <div class="container">
+        <h1 class="text-center">Resultado do Relatório</h1>
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Relatório de Vendas</h5>
+                        <p class="card-text"><strong>Período:</strong> {{ period }}</p>
+                        <p class="card-text"><strong>Total de Vendas:</strong> {{ total_sales }}</p>
+                        <a href="/reports" class="btn btn-primary">Voltar</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
