@@ -1,4 +1,4 @@
-Final Project CS50x 2024/2025
+Lima's - A simple web based to record local shop's orders and sales.
 =============================
 
 ## Purpose
