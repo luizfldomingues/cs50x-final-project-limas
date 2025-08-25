@@ -500,7 +500,8 @@ def order_details():
 @login_required
 def reports():
     """Page for querying for sales reports"""
-    return db.get_sales_report("2025-01-01", "2025-10-10")
+    print(request.args)
+    return render_template("query-report.html", today=db.get_today())
 
 
 @app.route("/register", methods=["GET", "POST"])
