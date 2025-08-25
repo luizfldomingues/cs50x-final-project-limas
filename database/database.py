@@ -53,6 +53,8 @@ class Database:
         row = self._get_db_connection().execute(query, params).fetchone()
         if row:
             return dict(row)
+        else:
+            return {}
 
     def _execute_query(self, query, params=()):
         """Execute a query, return cursor.lastrowid"""
@@ -274,6 +276,9 @@ class Database:
         """Retrieves the ID of a user by their username."""
         row = self._fetchone_query("SELECT id FROM users WHERE username = ?", (username,))
         return row['id'] if row else None
+
+    def get_today(self):
+        return self._fetchone_query("SELECT DATE(DATETIME(current_timestamp, '-3 hours')) 'today'")["today"]
 
     def get_sales_report(self, start_date, end_date):
         """Returns the total sales in the period and the sold products"""
