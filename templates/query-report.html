@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Histórico
+{% endblock %}
+
+{% block main %}
+<form action="/reports" method="get">
+    <div class="form-group m-3 w-50 mx-auto">
+      <div class="mt-4">Data Inicial:</div>
+      <input type="date" class="form-control" name="start-date" value="{{ today }}">
+      <div class="mt-4">Data Final:</div>
+      <input type="date" class="form-control" name="end-date" value="{{ today }}">
+    </div>
+    <div class="m-4">
+        <button class="border btn btn-primary" type="submit">Buscar histórico</button>
+    </div>
+</form>
+{% endblock %}
